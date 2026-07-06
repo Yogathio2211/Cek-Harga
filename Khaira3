@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harga Sembako</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
+ .box { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  h2 { text-align: center; color: #222; margin: 0 0 15px 0; }
+  input { width: 100%; padding: 14px; font-size: 16px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+  input:focus { border-color: #4CAF50; outline: none; }
+ .hasil { margin-top: 20px; }
+ .card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 12px; border-left: 5px solid #4CAF50; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+ .card b { font-size: 17px; color: #333; display: block; margin-bottom: 10px; }
+ .grid-harga { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+ .harga-box { background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; }
+ .label { font-size: 12px; color: #666; margin-bottom: 3px; }
+ .harga { font-size: 18px; font-weight: bold; }
+ .modal { color: #555; }
+ .jual { color: #d32f2f; }
+ .untung { color: #2e7d32; }
+ .tidak-ada { text-align: center; color: #999; margin-top: 20px; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h2>💰 Cek Harga Sembako
+update 07 juli 2026</h2>
+  <input type="text" id="cari" placeholder="Cari barang... contoh: Indomie" onkeyup="cariBarang()">
+
+  <div id="hasil" class="hasil"></div>
+  <div id="kosong" class="tidak-ada" style="display:none;">Barang tidak ketemu bro 😅</div>
+</div>
+
+<script>
+// === DATA HARGA - EDIT DI SINI AJA ===
+// Format: nama: [hargaModal, hargaJual]
+const dataHarga = {
+"Paseo T": [2000, 3000],
+"Paseo K": [800, 1500],
+"Jolly B": [6875, 10000],
+"Korek Gas": [1100, 2000],
+"Korek Kayu": [450, 1000],
+"Lilin": [1500, 2000],
+"Lampu 5W": [5000, 6000],
+"Lampu 12W": [7000, 10000],
+"Lampu 15W": [9000, 12000],
+"Lampu 23W": [15000, 20000],
+"King Kong": [5000, 6000],
+"Shinzui": [4500, 5000],
+"Dettol": [3500, 4500],
+"Giv": [2800, 3500],
+"Nuvo": [2500, 3500],
+"Lifebuoy": [3000, 4500],
+"Kapas": [5000, 7000],
+"Plastik PE": [9600, 12000],
+"Plastik Rokok": [8000, 10000],
+"Sedotan 1K": [1000, 1500],
+"Kantong Hitam B": [5000, 6000],
+"Kantong Hitam T": [5000, 6000],
+"Kantong Hitam K": [3000, 5000],
+"Kantong Putih B": [8000, 10000],
+"Kantong Putih T": [8000, 10000],
+"Kertas Nasi": [28000, 33000],
+"Cup Kopi": [7000, 9000],
+"Celengan K": [1000, 2000],
+"Bola": [3500, 5000],
+"Jas Hujan": [7000, 10000],
+"Sendal": [10000, 14000],
+"Rafia K": [1000, 2000],
+"Lem Korea": [3500, 5000],
+"MBK Putih": [2000, 2500],
+"MBK Silver": [2500, 3500],
+"Bedak Viva": [2000, 3500],
+"Bedak Herocyn": [11500, 13000],
+"Bedak My Baby": [5000, 6000],
+"Marina": [5000, 6000],
+"GPU K": [8500, 10000],
+"Kapur Ajaib": [4000, 5000],
+"Betadin": [6300, 7000],
+"Laserin": [6000, 7000],
+"Insto": [14000, 16000],
+"Kayu Putih T": [10900, 12000],
+"Kayu Putih K": [5900, 7000],
+"Balsem Lang B": [8500, 10000],
+"Balsem Lang K": [5000, 6000],
+"Geliga B": [8500, 10000],
+"Geliga K": [5000, 6000],
+"Gatsby Tisu": [1500, 2000],
+"Komix Dewasa": [1500, 2000],
+"Komix Anak": [1300, 1500],
+"Extrajoss": [1000, 1500],
+"Kuku Bima": [1200, 1500],
+"Antangin Tablet": [3500, 4000],
+"Antangin Cair": [3300, 4000],
+"Tolak angin cair": [3750, 4500],
+"Tolak angin anak": [3000, 3500],
+"Tolak Linu": [2500, 4000],
+"Madurasa": [900, 1500],
+"Entrostop Anak": [3000, 3500],
+"Baterai Jam": [2300, 3000],
+"Baterai Remot": [2500, 3000],
+"Salonpas": [750, 1000],
+"Koyo Cabe": [1150, 1500],
+"Cotton Bud": [500, 1000],
+"Ciptadent": [3500, 4500],
+"Close Up": [6500, 8000],
+"Pepsodent B": [9000, 10000],
+"Pepsodent K": [4500, 5500],
+"Agar Agar Walet": [4400, 5000],
+"Nutrijel Coklat": [2500, 3500],
+"Nutrijel Buah": [2500, 3000],
+"Teh Bubuk K": [5000, 6000],
+"Teh Botol Kotak": [6500, 8000],
+"Teh Sosro Kotak": [6000, 7000],
+"Teh Bendera Kotak": [5000, 6000],
+"Teh Sariwangi Kotak": [6000, 7000],
+"Teh Poci": [5000, 6000],
+"Aqua Galon": [19000, 21000],
+"Le Minerale Galon": [20000, 22000],
+"Isi Ulang Galon": [4000, 6000],
+"Gas Isi": [18500, 21000],
+"Roma Kelapa": [8500, 10000],
+"Hatari": [6500, 7000],
+"Terigu Segitiga": [6000, 7000],
+"Terigu": [7200, 9000],
+"Sagu": [10000, 12000],
+"Tepung Beras": [8000, 9000],
+"Gula Pasir": [17000, 20000],
+"Mama Lemon 4K": [3500, 4000],
+"Mama Lemon 2K": [1500, 2000],
+"Sunlight 10K": [8000, 10000],
+"Sunlight 5K": [4500, 5000],
+"Sunlight 2K": [1600, 2000],
+"Kispray Refil": [6000, 7000],
+"Rapika Refil": [3500, 5000],
+"Wipol 5K": [4500, 5000],
+"Soklin Lantai": [800, 1000],
+"Lifebuoy Cair": [4500, 5000],
+"Nuvo Cair": [2200, 3000],
+"Giv Cair": [2200, 3000],
+"Bango 10K": [9300, 10000],
+"Bango 3K": [2500, 3000],
+"Sedaap 2K": [1600, 2000],
+"Rinso 5K": [4500, 5000],
+"Daia 5K": [4500, 5000],
+"Spons Mandi": [4000, 5000],
+"Mainan": [1500, 2000],
+"Ultra Kacang Hijau": [4000, 6000],
+"Teh kotak": [3166, 5000],
+"Hydro Coco": [5500, 7000],
+"Ultra 200ml": [4600, 6000],
+"Ultra 125ml": [2875, 4000],
+"Indomilk Kids": [2675, 3000],
+"Milku": [3000, 4000],
+"Good Day Botol": [5000, 6500],
+"Teh Pucuk Kotak": [3000, 4000],
+"Milo Kotak": [2800, 3500],
+"ABC Botol": [3000, 4000],
+"Golda": [2875, 4000],
+"Telur": [1750, 2000],
+"Cimory Kotak": [5500, 7000],
+"Rexona": [2100, 3000],
+"Fair & Lovely Cream": [4100, 4500],
+"Fair & Lovely Sabun": [3200, 3500],
+"Kit Poles": [2000, 3000],
+"Kit Shampo": [1500, 2000],
+"Vanish": [4500, 5000],
+"Proclin": [800, 1000],
+"Hit Magic": [800, 1000],
+"Wipol": [833, 1000],
+"Super Sol": [833, 1000],
+"Shampo 1k": [833, 1000],
+"Shampo 500": [417, 500],
+"Soklin Cair": [833, 1000],
+"Soklin Pewangi": [833, 1000],
+"Downy": [833, 1000],
+"Molto": [833, 1000],
+"Rinso Cair": [833, 1000],
+"Kispray": [400, 500],
+"Rapika": [400, 500],
+"Good Day Freeze": [2300, 3000],
+"Good Day Latte": [1500, 2000],
+"Super Bubur": [833, 1000],
+"Nutrisari": [1300, 1500],
+"Tea Jus": [370, 500],
+"Citra Saset": [833, 1000],
+"ABC Klepon": [2100, 2500],
+"Energen": [2000, 2500],
+"Soffel 1000": [833, 1000],
+"Soffel 500": [425, 500],
+"Dancow": [3700, 4500],
+"Champion": [1750, 2000],
+"Milo": [1900, 2500],
+"Teh Tarik": [2250, 2500],
+"Susu Saset": [1334, 2000],
+"Kapal Api 60gr": [8650, 10000],
+"Kapal Api 30gr": [4500, 5000],
+"Kapal Api Mix": [1650, 2000],
+"Kapal Api Mini": [920, 1500],
+"Kopi Gajah Mini": [800, 1000],
+"Kopi Luwak Mini": [800, 1000],
+"Kopi Brazco": [1600, 2000],
+"ABC Susu": [1650, 2000],
+"ABC Mocca": [1650, 2000],
+"Kopi Luwak": [1500, 2000],
+"Kopi Liong": [1700, 2000],
+"Torabika Creamy": [1650, 2000],
+"Top Gula Aren": [1100, 1500],
+"Indocafe": [1600, 2000],
+"Good Day Mocca": [1500, 2000],
+"Teh Saset": [1050, 1500],
+"Tepung Sasa": [2300, 3000],
+"Tepung Kobe": [2000, 2500],
+"Charm Saset(3pcs))": [400, 2000],
+"Charm Malam Saset": [2200, 3000],
+"Racik": [1650, 2000],
+"Torabika Capucino": [2200, 2500],
+"Good Day Cappucino": [2100, 2500],
+"Chocolatos": [2050, 2500],
+"Drink Beng": [2200, 2500],
+"Marina": [5000, 6000],
+"Cerelac": [1750, 2000],
+"Sambal Terasi": [1250, 1500],
+"Sambal ABC": [650, 1000],
+"Mie Gelas": [870, 1000],
+"Bon Cabe": [834, 1000],
+"Bawang Bubuk": [834, 1000],
+"Ketumbar Bubuk": [834, 1000],
+"Kunyit Bubuk": [834, 1000],
+"Bango Saset": [834, 1000],
+"Saori": [2700, 3000],
+"Ladaku": [834, 1000],
+"Masako Saset": [417, 500],
+"Royco Saset": [417, 500],
+"Santen Kara": [4700, 6000],
+"Sodium": [4200, 5000],
+"Sitrun": [2250, 3000],
+"Vanili": [300, 500],
+"Terasi ABC": [375, 500],
+"Bumbu Dapur": [700, 1000],
+"MamyPoko S": [1450, 2000],
+"MamyPoko M": [1500, 2000],
+"MamyPoko L": [1500, 2000],
+"MamyPoko XL": [2000, 2500],
+"MamyPoko XXL": [2300, 2500],
+"Charm Kotak": [4600, 6000],
+"Laurier Kotak": [3700, 5000],
+"Charm Malam Kotak": [9000, 10000],
+"Kerokan Biru": [4000, 5000],
+"Kerokan Kuning": [4000, 5000],
+"Lem 2000": [1000, 2000],
+"Blau": [458, 1000],
+"Benang Jahit": [800, 1000],
+"Blue Band Saset": [1700, 2500],
+"Sikat Gigi": [2917, 4000],
+"Spon Cuci": [3200, 4000],
+"Kasa Kawat": [2000, 3000],
+"Karet": [5000, 6000],
+"Adem Sari Saset": [2250, 3000],
+"Vegeta": [2833, 3500],
+"Tambang 5K": [4000, 5000],
+"Cutter": [2000, 3500],
+"Hansaplas": [300, 500],
+"Gunting B": [7000, 9000],
+"Gunting T": [5000, 7000],
+"Sarimie Kuah": [3459, 4000],
+"Sarimie Goreng": [3625, 4500],
+"Indomie Goreng": [2850, 3500],
+"Indomie Kuah": [2700, 3500],
+"Sakura": [1675, 2000],
+"Pop Mie": [4200, 6000],
+"Pop Mie goreng": [5200, 7000],
+"Bihun B": [7500, 8500],
+"Bihun K": [4100, 5000],
+"Soun Naga": [2000, 2500],
+"Sarden Maya B": [23000, 25000],
+"Sarden Maya K": [10500, 12000],
+"Sarden ABC B": [23000, 25000],
+"Sarden ABC K": [10000, 12000],
+"Saos ABC Botol": [6300, 7500],
+"Blue Band": [8700, 10000],
+"Forvita": [6000, 7000],
+"Cuka": [2000, 3000],
+"Garam K": [2125, 3000],
+"Grandco 2L": [40900, 43000],
+"Grandco 1L": [20250, 22000],
+"Grandco 1/2L": [10334, 12000],
+"Minyak Gelas": [4900, 6000],
+"Ekonomi 5K": [4416, 5000],
+"Ekonomi 2K": [1734, 2000],
+"Ekonomi 1K": [900, 1000],
+"Daia Bubuk 1K": [833, 1000],
+"Rinso Bubuk 1K": [833, 1000],
+"Indomie Jumbo": [3625, 4500],
+"Mie Sedaap Kuah": [2800, 3500],
+"Mie Sedaap Goreng": [2687, 3500],
+"Adem Sari Kaleng": [6041, 8000],
+"Larutan Kaleng": [5250, 7000],
+"Pocari Kaleng": [5000, 6000],
+"Bintang Zero": [7000, 9000],
+"Green Sands": [7000, 8000],
+"Cincau Panda": [5334, 6000],
+"Kratingdaeng": [5000, 6000],
+"You C 1000": [5500, 7000],
+"Bear Brand": [9500, 11000],
+"Tujuh Kurma": [8750, 10000],
+"Zoda": [4167, 6000],
+"Mizon": [4167, 5000],
+"Orange Water": [6250, 8000],
+"Floridina": [2417, 3500],
+"Isoplus": [2334, 3500],
+"Nipis Madu": [3167, 5000],
+"Pocari B": [6250, 8000],
+"Sprite/Fanta/Cola": [3750, 5000],
+"Fruit Tea": [3417, 5000],
+"Teh Pucuk": [2584, 4000],
+"Nutriboost": [5584, 7000],
+"Aqua B": [4083, 6000],
+"Aqua T": [1834, 6000],
+"Vit B": [2750, 5000],
+"Vit T": [1334, 2500],
+"Le Minerale B": [4084, 6000],
+"Le Minerale T": [1834, 3000],
+"Vola Gelas": [323, 500],
+"Minuman 2K": [1375, 2000],
+"Minuman 1K": [834, 1000],
+"Cimory Botol b": [7000, 9000],
+"Cimory Stick": [2000, 2500],
+"Cimory Eat Milk": [6000, 7000],
+"Cimory Botol Yakul": [2000, 2500],
+"Spageti Wow": [2500, 3500],
+"Aoka": [1900, 3000],
+"Marinasi": [800, 1000],
+};
+// ==========================================
+
+function formatRupiah(angka) {
+  return "Rp" + angka.toLocaleString('id-ID');
+}
+
+function cariBarang() {
+  const keyword = document.getElementById("cari").value.toLowerCase();
+  const hasilDiv = document.getElementById("hasil");
+  const kosongDiv = document.getElementById("kosong");
+
+  if (keyword.length < 1) {
+    hasilDiv.innerHTML = "";
+    kosongDiv.style.display = "none";
+    return;
+  }
+
+  const keys = Object.keys(dataHarga).filter(nama => nama.toLowerCase().includes(keyword));
+
+  if (keys.length > 0) {
+    kosongDiv.style.display = "none";
+    hasilDiv.innerHTML = keys.map(nama => {
+      const [modal, jual] = dataHarga[nama];
+      const untung = jual - modal;
+      return `
+      <div class="card">
+        <b>${nama}</b>
+        <div class="grid-harga">
+          <div class="harga-box">
+            <div class="label">Modal</div>
+            <div class="harga modal">${formatRupiah(modal)}</div>
+          </div>
+          <div class="harga-box">
+            <div class="label">Jual</div>
+            <div class="harga jual">${formatRupiah(jual)}</div>
+          </div>
+          <div class="harga-box">
+            <div class="label">Untung</div>
+            <div class="harga untung">${formatRupiah(untung)}</div>
+          </div>
+        </div>
+      </div>
+      `;
+    }).join('');
+  } else {
+    hasilDiv.innerHTML = "";
+    kosongDiv.style.display = "block";
+  }
+}
+</script>
+
+</body>
+</html>
